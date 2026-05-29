@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">VibeType_CustomKeyboard</string>
+    <string name="ime_name">VibeType Keyboard</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="casual">Casual</string>
+    <string name="polite">Polite</string>
+    <string name="translate">Translate</string>
+    <string name="space">Space</string>
+    <string name="delete">Delete</string>
+    <string name="enter">Enter</string>
+</resources>
