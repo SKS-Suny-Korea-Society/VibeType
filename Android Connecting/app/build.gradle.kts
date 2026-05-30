@@ -5,15 +5,11 @@ plugins {
 
 android {
     namespace = "com.example.vibetype_customkeyboard"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.vibetype_customkeyboard"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -40,6 +36,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.appcompat)
+    implementation(libs.material)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
@@ -50,7 +48,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     
     // 🎹 KeyboardVisibilityEvent: 소프트 키보드 표시/숨김 감지
-    implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.2.7")
+    implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:2.3.0")
     
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
