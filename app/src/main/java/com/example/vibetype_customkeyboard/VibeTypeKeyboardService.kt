@@ -1,13 +1,19 @@
 package com.example.vibetype_customkeyboard
 
 import android.inputmethodservice.InputMethodService
+import android.inputmethodservice.Keyboard
+import android.inputmethodservice.KeyboardView
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 
-class VibeTypeKeyboardService : InputMethodService() {
+class VibeTypeKeyboardService : InputMethodService(), KeyboardView.OnKeyboardActionListener {
 
+    private lateinit var keyboardView: KeyboardView
+    private lateinit var keyboard: Keyboard
+    private var isKoreanMode = false
     private lateinit var relationshipRow: LinearLayout
     private lateinit var dimOverlay: View
     private lateinit var suggestionPanel: LinearLayout
@@ -16,8 +22,14 @@ class VibeTypeKeyboardService : InputMethodService() {
     override fun onCreateInputView(): View {
         Log.d(TAG, "VibeType keyboard created")
 
-        // Inflate the custom keyboard UI that Android shows inside text fields.
         val view = layoutInflater.inflate(R.layout.keyboard_view, null)
+        
+        // Initialize KeyboardView
+        keyboardView = view.findViewById(R.id.keyboardView)
+        keyboard = Keyboard(this, R.xml.keyboard)
+        keyboardView.keyboard = keyboard
+        keyboardView.setOnKeyboardActionListener(this)
+
         relationshipRow = view.findViewById(R.id.relationshipRow)
         dimOverlay = view.findViewById(R.id.dimOverlay)
         suggestionPanel = view.findViewById(R.id.suggestionPanel)
@@ -27,7 +39,6 @@ class VibeTypeKeyboardService : InputMethodService() {
             view.findViewById(R.id.suggestionCButton)
         )
 
-        // VibeTyping is the entry point for the relationship-based rewrite flow.
         view.findViewById<Button>(R.id.vibeTypingButton).setOnClickListener {
             Log.d(TAG, "VibeTyping button clicked")
             relationshipRow.visibility = View.VISIBLE
@@ -38,7 +49,6 @@ class VibeTypeKeyboardService : InputMethodService() {
         wireRelationshipButton(view, R.id.businessButton, "business")
         wireRelationshipButton(view, R.id.professorButton, "professor")
 
-        // Basic keyboard controls operate on the currently focused text input.
         view.findViewById<Button>(R.id.spaceButton).setOnClickListener {
             Log.d(TAG, "Space button clicked")
             commitText(" ")
@@ -55,6 +65,96 @@ class VibeTypeKeyboardService : InputMethodService() {
         }
 
         return view
+    }
+
+    override fun onKey(primaryCode: Int, keyCodes: IntArray?) {
+        val inputConnection = currentInputConnection
+        
+        when (primaryCode) {
+            -5 -> {
+                // Backspace
+                inputConnection?.deleteSurroundingText(1, 0)
+                Log.d(TAG, "Backspace pressed")
+            }
+            -100 -> {
+                // 한/영 전환
+                isKoreanMode = !isKoreanMode
+                Log.d(TAG, "Language mode toggled: Korean=$isKoreanMode")
+            }
+            -101 -> {
+                // 입력 (Submit)
+                inputConnection?.commitText("\n", 1)
+                Log.d(TAG, "Enter pressed")
+            }
+            32 -> {
+                // Space
+                inputConnection?.commitText(" ", 1)
+                Log.d(TAG, "Space pressed")
+            }
+            10 -> {
+                // Enter key
+                inputConnection?.commitText("\n", 1)
+                Log.d(TAG, "Enter pressed")
+            }
+            else -> {
+                // 일반 문자 입력
+                val c = primaryCode.toChar().toString()
+                val text = if (isKoreanMode) convertToKorean(c) else c.uppercase()
+                inputConnection?.commitText(text, 1)
+                Log.d(TAG, "Key pressed: $c -> $text (Korean: $isKoreanMode)")
+            }
+        }
+    }
+
+    override fun onPress(primaryCode: Int) {
+        Log.d(TAG, "Key pressed: $primaryCode")
+    }
+
+    override fun onRelease(primaryCode: Int) {
+        Log.d(TAG, "Key released: $primaryCode")
+    }
+
+    override fun onText(text: CharSequence?) {
+        Log.d(TAG, "Text input: $text")
+        currentInputConnection?.commitText(text.toString(), 1)
+    }
+
+    override fun swipeLeft() {}
+    override fun swipeRight() {}
+    override fun swipeDown() {}
+    override fun swipeUp() {}
+
+    private fun convertToKorean(english: String): String {
+        // 영문을 한글로 변환하는 기본 매핑
+        return when (english.lowercase()) {
+            "q" -> "ㅂ"
+            "w" -> "ㅈ"
+            "e" -> "ㄷ"
+            "r" -> "ㄱ"
+            "t" -> "ㅅ"
+            "y" -> "ㅛ"
+            "u" -> "ㅕ"
+            "i" -> "ㅑ"
+            "o" -> "ㅐ"
+            "p" -> "ㅔ"
+            "a" -> "ㅁ"
+            "s" -> "ㄴ"
+            "d" -> "ㅇ"
+            "f" -> "ㄹ"
+            "g" -> "ㅎ"
+            "h" -> "ㅗ"
+            "j" -> "ㅓ"
+            "k" -> "ㅏ"
+            "l" -> "ㅣ"
+            "z" -> "ㅆ"
+            "x" -> "ㅈ"
+            "c" -> "ㅊ"
+            "v" -> "ㅋ"
+            "b" -> "ㅌ"
+            "n" -> "ㅍ"
+            "m" -> "ㅎ"
+            else -> english
+        }
     }
 
     private fun wireRelationshipButton(view: View, buttonId: Int, relationship: String) {
@@ -87,7 +187,6 @@ class VibeTypeKeyboardService : InputMethodService() {
         suggestionPanel.animate().alpha(1f).translationY(0f).setDuration(160).start()
     }
 
-    // Mock relationship-aware suggestions for hackathon testing before real API integration.
     private fun getMockSuggestions(input: String, relationship: String): List<String> {
         val fallbackTopic = if (input.isBlank()) "that" else input.trim()
 
