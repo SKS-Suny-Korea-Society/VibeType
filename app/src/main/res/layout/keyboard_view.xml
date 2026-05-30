@@ -1,77 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/keyboard_background"
-    android:orientation="vertical"
-    android:padding="8dp">
-
-    <TextView
-        android:id="@+id/recommendationLabel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="4dp"
-        android:text="@string/recommendations"
-        android:textColor="@android:color/black"
-        android:textStyle="bold" />
+    android:background="@color/keyboard_background">
 
     <LinearLayout
-        android:id="@+id/recommendationContainer"
+        android:id="@+id/keyboardContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/casualButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/casual" />
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="36dp">
 
         <Button
-            android:id="@+id/politeButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/polite" />
+            android:id="@+id/vibeTypingButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/vibe_typing"
+            android:textAllCaps="false" />
 
-        <Button
-            android:id="@+id/translateButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/translate" />
+        <LinearLayout
+            android:id="@+id/relationshipRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/friendButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/friend"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/teammateButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/teammate"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/businessButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/business"
+                android:textAllCaps="false" />
+
+            <Button
+                android:id="@+id/professorButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/professor"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/spaceButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="2"
+                android:text="@string/space" />
+
+            <Button
+                android:id="@+id/deleteButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/delete" />
+
+            <Button
+                android:id="@+id/enterButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/enter" />
+        </LinearLayout>
     </LinearLayout>
 
+    <View
+        android:id="@+id/dimOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0"
+        android:background="#99000000"
+        android:visibility="gone" />
+
     <LinearLayout
+        android:id="@+id/suggestionPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_gravity="bottom"
+        android:background="@drawable/suggestion_panel_background"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:translationY="24dp"
+        android:visibility="gone">
 
         <Button
-            android:id="@+id/spaceButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="2"
-            android:text="@string/space" />
+            android:id="@+id/suggestionAButton"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:textAllCaps="false"
+            android:textColor="@color/black" />
 
         <Button
-            android:id="@+id/deleteButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/delete" />
+            android:id="@+id/suggestionBButton"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:textAllCaps="false"
+            android:textColor="@color/black" />
 
         <Button
-            android:id="@+id/enterButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/enter" />
+            android:id="@+id/suggestionCButton"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:textAllCaps="false"
+            android:textColor="@color/black" />
     </LinearLayout>
-</LinearLayout>
+</FrameLayout>

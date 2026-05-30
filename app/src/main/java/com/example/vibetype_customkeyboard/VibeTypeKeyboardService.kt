@@ -8,30 +8,35 @@ import android.widget.LinearLayout
 
 class VibeTypeKeyboardService : InputMethodService() {
 
-    private lateinit var recommendationContainer: LinearLayout
+    private lateinit var relationshipRow: LinearLayout
+    private lateinit var dimOverlay: View
+    private lateinit var suggestionPanel: LinearLayout
+    private lateinit var suggestionButtons: List<Button>
 
     override fun onCreateInputView(): View {
         Log.d(TAG, "VibeType keyboard created")
 
         // Inflate the custom keyboard UI that Android shows inside text fields.
         val view = layoutInflater.inflate(R.layout.keyboard_view, null)
-        recommendationContainer = view.findViewById(R.id.recommendationContainer)
+        relationshipRow = view.findViewById(R.id.relationshipRow)
+        dimOverlay = view.findViewById(R.id.dimOverlay)
+        suggestionPanel = view.findViewById(R.id.suggestionPanel)
+        suggestionButtons = listOf(
+            view.findViewById(R.id.suggestionAButton),
+            view.findViewById(R.id.suggestionBButton),
+            view.findViewById(R.id.suggestionCButton)
+        )
 
-        // These buttons read the current message and generate mock AI suggestions.
-        view.findViewById<Button>(R.id.casualButton).setOnClickListener {
-            Log.d(TAG, "Casual button clicked")
-            generateSuggestions("casual")
+        // VibeTyping is the entry point for the relationship-based rewrite flow.
+        view.findViewById<Button>(R.id.vibeTypingButton).setOnClickListener {
+            Log.d(TAG, "VibeTyping button clicked")
+            relationshipRow.visibility = View.VISIBLE
         }
 
-        view.findViewById<Button>(R.id.politeButton).setOnClickListener {
-            Log.d(TAG, "Polite button clicked")
-            generateSuggestions("polite")
-        }
-
-        view.findViewById<Button>(R.id.translateButton).setOnClickListener {
-            Log.d(TAG, "Translate button clicked")
-            generateSuggestions("translate")
-        }
+        wireRelationshipButton(view, R.id.friendButton, "friend")
+        wireRelationshipButton(view, R.id.teammateButton, "teammate")
+        wireRelationshipButton(view, R.id.businessButton, "business")
+        wireRelationshipButton(view, R.id.professorButton, "professor")
 
         // Basic keyboard controls operate on the currently focused text input.
         view.findViewById<Button>(R.id.spaceButton).setOnClickListener {
@@ -49,96 +54,100 @@ class VibeTypeKeyboardService : InputMethodService() {
             commitText("\n")
         }
 
-        showSuggestions(getMockSuggestions("", "casual"))
         return view
     }
 
-    private fun generateSuggestions(mode: String) {
-        val input = currentInputConnection
-            ?.getTextBeforeCursor(MAX_INPUT_LENGTH, 0)
+    private fun wireRelationshipButton(view: View, buttonId: Int, relationship: String) {
+        view.findViewById<Button>(buttonId).setOnClickListener {
+            Log.d(TAG, "Relationship selected: $relationship")
+            showSuggestionPanel(relationship)
+        }
+    }
+
+    private fun showSuggestionPanel(relationship: String) {
+        val currentText = currentInputConnection
+            ?.getTextBeforeCursor(MAX_REPLACE_CHARS, 0)
             ?.toString()
             .orEmpty()
-            .trim()
 
-        Log.d(TAG, "Input text read: $input")
-        Log.d(TAG, "Selected mode: $mode")
+        Log.d(TAG, "Input before cursor: $currentText")
 
-        // Keep this boundary small so the real backend API can replace it later.
-        val suggestions = try {
-            getMockSuggestions(input, mode)
-        } catch (error: Exception) {
-            Log.e(TAG, "Suggestion generation failed, using fallback", error)
-            getMockSuggestions("", mode)
-        }
-
-        Log.d(TAG, "Suggestions generated: $suggestions")
-        showSuggestions(suggestions)
-    }
-
-    // Mock AI recommendations for hackathon testing before real API integration.
-    private fun getMockSuggestions(input: String, mode: String): List<String> {
-        if (input.isBlank()) {
-            return when (mode) {
-                "casual" -> listOf(
-                    "Sounds good to me.",
-                    "Yep, let's do it.",
-                    "I like that idea."
-                )
-                "polite" -> listOf(
-                    "That sounds great. Thank you.",
-                    "I appreciate your help.",
-                    "Please let me know what works best."
-                )
-                "translate" -> listOf(
-                    "This is a translated sentence.",
-                    "Thank you for your message.",
-                    "I will check and reply soon."
-                )
-                else -> listOf("That sounds good!")
+        getMockSuggestions(currentText, relationship).forEachIndexed { index, suggestion ->
+            suggestionButtons[index].text = "${SUGGESTION_LABELS[index]}. $suggestion"
+            suggestionButtons[index].setOnClickListener {
+                Log.d(TAG, "Suggestion ${SUGGESTION_LABELS[index]} clicked: $suggestion")
+                replaceCurrentText(suggestion)
+                hideSuggestionPanel()
             }
         }
 
-        return when (mode) {
-            "casual" -> listOf(
-                "Sounds good: $input",
-                "Yeah, $input",
-                "That works for me. $input"
+        dimOverlay.visibility = View.VISIBLE
+        suggestionPanel.visibility = View.VISIBLE
+        dimOverlay.animate().alpha(1f).setDuration(120).start()
+        suggestionPanel.animate().alpha(1f).translationY(0f).setDuration(160).start()
+    }
+
+    // Mock relationship-aware suggestions for hackathon testing before real API integration.
+    private fun getMockSuggestions(input: String, relationship: String): List<String> {
+        val fallbackTopic = if (input.isBlank()) "that" else input.trim()
+
+        return when (relationship) {
+            "friend" -> listOf(
+                "Sounds good, let's do it!",
+                "Yeah, I like that idea.",
+                "Totally. ${fallbackTopic.replaceFirstChar { it.uppercase() }} works for me."
             )
-            "polite" -> listOf(
-                "That sounds great. Thank you. $input",
-                "I appreciate it. $input",
-                "Please let me know what works best. $input"
+            "teammate" -> listOf(
+                "Looks good. I'll follow up on this.",
+                "I agree with this direction.",
+                "Let's move forward and sync on the next step."
             )
-            "translate" -> listOf(
-                "This is a translated sentence: $input",
-                "Translated: $input",
-                "English version: $input"
+            "business" -> listOf(
+                "Thank you for the update. This sounds good to me.",
+                "I appreciate the context and will review it shortly.",
+                "That approach works well from my side."
             )
-            else -> listOf(input)
+            "professor" -> listOf(
+                "Thank you, Professor. I appreciate your guidance.",
+                "I understand. I will review this carefully and follow up.",
+                "Thank you for your feedback. I will revise it accordingly."
+            )
+            else -> listOf(
+                "That sounds good to me.",
+                "I agree with this.",
+                "Thank you for the update."
+            )
         }
     }
 
-    private fun showSuggestions(suggestions: List<String>) {
-        recommendationContainer.removeAllViews()
+    private fun hideSuggestionPanel() {
+        dimOverlay.animate().alpha(0f).setDuration(120).withEndAction {
+            dimOverlay.visibility = View.GONE
+        }.start()
 
-        suggestions.forEach { suggestion ->
-            val suggestionButton = Button(this).apply {
-                text = suggestion
-                isAllCaps = false
-                setOnClickListener {
-                    Log.d(TAG, "Suggestion inserted: $suggestion")
-                    commitText(suggestion)
-                }
+        suggestionPanel.animate()
+            .alpha(0f)
+            .translationY(-24f)
+            .setDuration(160)
+            .withEndAction {
+                suggestionPanel.visibility = View.GONE
+                suggestionPanel.translationY = 24f
+                relationshipRow.visibility = View.GONE
             }
+            .start()
+    }
 
-            recommendationContainer.addView(
-                suggestionButton,
-                LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
+    private fun replaceCurrentText(text: String) {
+        Log.d(TAG, "Replacing current text with: $text")
+
+        val inputConnection = currentInputConnection ?: return
+        val beforeLength = inputConnection.getTextBeforeCursor(MAX_REPLACE_CHARS, 0)?.length ?: 0
+        val afterLength = inputConnection.getTextAfterCursor(MAX_REPLACE_CHARS, 0)?.length ?: 0
+
+        inputConnection.beginBatchEdit()
+        inputConnection.deleteSurroundingText(beforeLength, afterLength)
+        inputConnection.commitText(text, 1)
+        inputConnection.endBatchEdit()
     }
 
     private fun commitText(text: String) {
@@ -148,6 +157,7 @@ class VibeTypeKeyboardService : InputMethodService() {
 
     companion object {
         private const val TAG = "VibeTypeKeyboard"
-        private const val MAX_INPUT_LENGTH = 500
+        private const val MAX_REPLACE_CHARS = 500
+        private val SUGGESTION_LABELS = listOf("A", "B", "C")
     }
 }

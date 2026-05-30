@@ -23,6 +23,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".TestInputActivity"
+            android:exported="true"
+            android:label="@string/test_input_title"
+            android:theme="@style/Theme.VibeType_CustomKeyboard"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
+
         <!--
             Android Settings discovers this service as an available keyboard.
             BIND_INPUT_METHOD lets only the Android system bind to the IME.
