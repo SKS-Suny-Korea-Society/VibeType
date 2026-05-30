@@ -369,9 +369,7 @@
 </div>
 
 <script>
- const OPENAI_API_KEY = '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';
- const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
- const OPENAI_MODEL = 'gpt-4.1-mini';
+  const API_URL = '/api/generate';
   let isGenerating = false;
 
   // ── State ──
@@ -459,17 +457,13 @@ Generate exactly 3 natural English expressions that convey the same meaning as t
 Respond ONLY with a JSON object (no markdown, no backticks, no extra text):
 {"results":["expression 1","expression 2","expression 3"]}`;
 
-      const response = await fetch(OPENAI_API_URL, {
+      const response = await fetch(API_URL, {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${OPENAI_API_KEY}`
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
-    model: OPENAI_MODEL,
-    input: prompt,
-    temperature: 0.8,
-    max_output_tokens: 1024
+    prompt
   })
 });
 
@@ -484,13 +478,12 @@ Respond ONLY with a JSON object (no markdown, no backticks, no extra text):
       }
 
       const data = await response.json();
-      let parsed;
-      try {
-        const text = data.output_text ?? '';
-parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
-      } catch {
-        parsed = { results: fallbacks[selectedTone] };
-      }
+let parsed;
+try {
+  parsed = data;
+} catch {
+  parsed = { results: fallbacks[selectedTone] };
+}
 
       loadingEl.style.display = 'none';
       renderResults(parsed.results);
