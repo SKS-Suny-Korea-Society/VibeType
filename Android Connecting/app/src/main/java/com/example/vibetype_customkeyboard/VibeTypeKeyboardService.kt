@@ -11,12 +11,15 @@ import android.util.Log
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.ExtractedTextRequest
 import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.OutputStreamWriter
@@ -27,67 +30,55 @@ import kotlin.math.roundToInt
 
 class VibeTypeKeyboardService : InputMethodService() {
 
-    private lateinit var rootView: LinearLayout
-    private lateinit var suggestionButtons: List<Button>
+    private lateinit var rootView: FrameLayout
+    private lateinit var keyboardLayout: LinearLayout
+    private lateinit var popupOverlay: LinearLayout
+    private lateinit var popupTitle: TextView
+    private lateinit var popupResultButtons: List<Button>
     private lateinit var toneButtons: Map<Tone, Button>
     private lateinit var modeButton: Button
     private lateinit var shiftButton: Button
     private lateinit var keyButtons: MutableList<Button>
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var pendingSuggestionRunnable: Runnable? = null
+    private var backspaceRepeatRunnable: Runnable? = null
     private var suggestionRequestId = 0
 
-    private var selectedTone = Tone.PROFESSOR
+    private var selectedTone: Tone? = null
     private var isKoreanMode = false
     private var isShifted = false
     private var composingState = HangulState()
 
     override fun onCreateInputView(): View {
-        rootView = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(6.dp(), 6.dp(), 6.dp(), 8.dp())
+        rootView = FrameLayout(this).apply {
             setBackgroundColor(COLOR_KEYBOARD_BG)
         }
 
-        buildSuggestionStrip()
+        keyboardLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(6.dp(), 6.dp(), 6.dp(), 26.dp())
+            setBackgroundColor(COLOR_KEYBOARD_BG)
+        }
+        rootView.addView(keyboardLayout, FrameLayout.LayoutParams(MATCH, WRAP, Gravity.BOTTOM))
+
         buildToneStrip()
         buildKeyboardRows()
-        setIdleSuggestions()
+        buildPopupOverlay()
         return rootView
     }
 
     override fun onStartInput(attribute: EditorInfo?, restarting: Boolean) {
         super.onStartInput(attribute, restarting)
         composingState = HangulState()
-        scheduleSuggestions()
+        hideSuggestionPopup()
     }
 
     override fun onFinishInput() {
         finishHangulComposition()
-        pendingSuggestionRunnable?.let(mainHandler::removeCallbacks)
+        stopBackspaceRepeat()
+        suggestionRequestId++
+        hideSuggestionPopup()
         super.onFinishInput()
-    }
-
-    private fun buildSuggestionStrip() {
-        val row = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            setPadding(0, 0, 0, 6.dp())
-        }
-
-        suggestionButtons = (0..2).map { index ->
-            makeButton(
-                label = "VibeType ${index + 1}",
-                weight = 1f,
-                heightDp = 42,
-                role = KeyRole.SUGGESTION
-            ).also { button ->
-                row.addView(button)
-            }
-        }
-
-        rootView.addView(row, LinearLayout.LayoutParams(MATCH, WRAP))
     }
 
     private fun buildToneStrip() {
@@ -105,16 +96,79 @@ class VibeTypeKeyboardService : InputMethodService() {
                 role = KeyRole.TONE
             ).also { button ->
                 button.setOnClickListener {
+                    tapFeedback()
                     selectedTone = tone
                     updateToneSelection()
-                    scheduleSuggestions(immediate = true)
+                    requestSuggestionsForTone(tone)
                 }
                 row.addView(button)
             }
         }
 
-        rootView.addView(row, LinearLayout.LayoutParams(MATCH, WRAP))
+        keyboardLayout.addView(row, LinearLayout.LayoutParams(MATCH, WRAP))
         updateToneSelection()
+    }
+
+    private fun buildPopupOverlay() {
+        popupOverlay = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            setPadding(12.dp(), 12.dp(), 12.dp(), 12.dp())
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(0xD9151722.toInt(), 0xE2111320.toInt())
+            )
+        }
+
+        popupTitle = TextView(this).apply {
+            text = "Choose a VibeType result"
+            setTextColor(Color.WHITE)
+            textSize = 14f
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            setPadding(0, 0, 0, 8.dp())
+        }
+        popupOverlay.addView(popupTitle, LinearLayout.LayoutParams(MATCH, WRAP))
+
+        popupResultButtons = (0..2).map { index ->
+            Button(this).apply {
+                text = "Option ${index + 1}"
+                setAllCaps(false)
+                gravity = Gravity.CENTER_VERTICAL
+                minHeight = 0
+                minWidth = 0
+                includeFontPadding = false
+                textSize = 13f
+                typeface = Typeface.DEFAULT_BOLD
+                setTextColor(Color.WHITE)
+                background = gradientPopupBackground()
+                setPadding(14.dp(), 0, 14.dp(), 0)
+                layoutParams = LinearLayout.LayoutParams(MATCH, 58.dp()).apply {
+                    setMargins(0, 4.dp(), 0, 4.dp())
+                }
+            }.also(popupOverlay::addView)
+        }
+
+        popupOverlay.addView(
+            Button(this).apply {
+                text = "Close"
+                setAllCaps(false)
+                textSize = 12f
+                setTextColor(COLOR_TEXT)
+                background = keyBackground(KeyRole.SUGGESTION, false)
+                setOnClickListener {
+                    tapFeedback()
+                    hideSuggestionPopup()
+                }
+                layoutParams = LinearLayout.LayoutParams(MATCH, 40.dp()).apply {
+                    setMargins(0, 8.dp(), 0, 0)
+                }
+            }
+        )
+
+        rootView.addView(popupOverlay, FrameLayout.LayoutParams(MATCH, MATCH))
     }
 
     private fun buildKeyboardRows() {
@@ -132,20 +186,35 @@ class VibeTypeKeyboardService : InputMethodService() {
             thirdRow.addView(characterButton(key))
         }
         thirdRow.addView(makeButton("⌫", 1.35f, role = KeyRole.SPECIAL).also {
-            it.setOnClickListener { handleBackspace() }
+            it.setOnTouchListener { _, event ->
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        handleBackspace()
+                        startBackspaceRepeat()
+                        true
+                    }
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        stopBackspaceRepeat()
+                        true
+                    }
+                    else -> true
+                }
+            }
         })
-        rootView.addView(thirdRow, LinearLayout.LayoutParams(MATCH, WRAP))
+        keyboardLayout.addView(thirdRow, LinearLayout.LayoutParams(MATCH, WRAP))
 
         val bottomRow = newRow()
-        modeButton = makeButton("한/영", 1.3f, role = KeyRole.SPECIAL).also {
+        modeButton = makeButton("한", 1.3f, role = KeyRole.LANGUAGE).also {
             it.setOnClickListener { toggleLanguageMode() }
             bottomRow.addView(it)
         }
         bottomRow.addView(makeButton(",", 0.8f).also { it.setOnClickListener { commitLiteral(",") } })
         bottomRow.addView(makeButton("space", 4.2f, role = KeyRole.SPACE).also { it.setOnClickListener { handleSpace() } })
         bottomRow.addView(makeButton(".", 0.8f).also { it.setOnClickListener { commitLiteral(".") } })
-        bottomRow.addView(makeButton("↵", 1.3f, role = KeyRole.SPECIAL).also { it.setOnClickListener { handleEnter() } })
-        rootView.addView(bottomRow, LinearLayout.LayoutParams(MATCH, WRAP))
+        bottomRow.addView(makeButton("↵", 1.3f, role = KeyRole.ENTER).also {
+            it.setOnClickListener { handleEnter() }
+        })
+        keyboardLayout.addView(bottomRow, LinearLayout.LayoutParams(MATCH, WRAP))
 
         updateKeyLabels()
     }
@@ -155,7 +224,7 @@ class VibeTypeKeyboardService : InputMethodService() {
         if (startSpacerWeight > 0f) row.addView(spacer(startSpacerWeight))
         keys.forEach { row.addView(characterButton(it)) }
         if (endSpacerWeight > 0f) row.addView(spacer(endSpacerWeight))
-        rootView.addView(row, LinearLayout.LayoutParams(MATCH, WRAP))
+        keyboardLayout.addView(row, LinearLayout.LayoutParams(MATCH, WRAP))
     }
 
     private fun newRow(): LinearLayout {
@@ -197,12 +266,18 @@ class VibeTypeKeyboardService : InputMethodService() {
                 KeyRole.SUGGESTION -> 12f
                 KeyRole.TONE -> 11f
                 KeyRole.SPACE -> 13f
+                KeyRole.ENTER -> 27f
+                KeyRole.LANGUAGE -> 19f
                 else -> 20f
             }
             typeface = Typeface.create(Typeface.DEFAULT, if (role == KeyRole.NORMAL) Typeface.NORMAL else Typeface.BOLD)
             setTextColor(if (role == KeyRole.TONE || role == KeyRole.SUGGESTION) COLOR_TEXT_SOFT else COLOR_TEXT)
             background = keyBackground(role, selected = false)
-            setPadding(2.dp(), 0, 2.dp(), 0)
+            if (role == KeyRole.ENTER) {
+                setPadding(2.dp(), 0, 2.dp(), 5.dp())
+            } else {
+                setPadding(2.dp(), 0, 2.dp(), 0)
+            }
             isSoundEffectsEnabled = true
             layoutParams = LinearLayout.LayoutParams(0, heightDp.dp(), weight).apply {
                 setMargins(3.dp(), 2.dp(), 3.dp(), 2.dp())
@@ -213,7 +288,7 @@ class VibeTypeKeyboardService : InputMethodService() {
     private fun keyBackground(role: KeyRole, selected: Boolean): GradientDrawable {
         val color = when {
             selected -> COLOR_ACCENT
-            role == KeyRole.SPECIAL -> COLOR_SPECIAL_KEY
+            role == KeyRole.SPECIAL || role == KeyRole.LANGUAGE -> COLOR_SPECIAL_KEY
             role == KeyRole.SUGGESTION -> COLOR_SUGGESTION_KEY
             role == KeyRole.TONE -> COLOR_TOOL_KEY
             else -> COLOR_KEY
@@ -232,7 +307,6 @@ class VibeTypeKeyboardService : InputMethodService() {
         if (rawKey.length == 1 && rawKey[0].isDigit()) {
             finishHangulComposition()
             ic.commitText(rawKey, 1)
-            scheduleSuggestions()
             return
         }
 
@@ -254,7 +328,6 @@ class VibeTypeKeyboardService : InputMethodService() {
             isShifted = false
             updateKeyLabels()
         }
-        scheduleSuggestions()
     }
 
     private fun handleShift() {
@@ -276,21 +349,35 @@ class VibeTypeKeyboardService : InputMethodService() {
         if (!deleteFromHangulComposition()) {
             currentInputConnection?.deleteSurroundingText(1, 0)
         }
-        scheduleSuggestions()
+    }
+
+    private fun startBackspaceRepeat() {
+        stopBackspaceRepeat()
+        backspaceRepeatRunnable = object : Runnable {
+            override fun run() {
+                handleBackspace()
+                mainHandler.postDelayed(this, BACKSPACE_REPEAT_INTERVAL_MS)
+            }
+        }.also {
+            mainHandler.postDelayed(it, BACKSPACE_INITIAL_DELAY_MS)
+        }
+    }
+
+    private fun stopBackspaceRepeat() {
+        backspaceRepeatRunnable?.let(mainHandler::removeCallbacks)
+        backspaceRepeatRunnable = null
     }
 
     private fun handleSpace() {
         tapFeedback()
         finishHangulComposition()
         currentInputConnection?.commitText(" ", 1)
-        scheduleSuggestions()
     }
 
     private fun commitLiteral(text: String) {
         tapFeedback()
         finishHangulComposition()
         currentInputConnection?.commitText(text, 1)
-        scheduleSuggestions()
     }
 
     private fun handleEnter() {
@@ -323,7 +410,8 @@ class VibeTypeKeyboardService : InputMethodService() {
                 raw
             }
         }
-        modeButton.text = if (isKoreanMode) "한국어" else "English"
+        modeButton.text = if (isKoreanMode) "A" else "한"
+        modeButton.textSize = 19f
         shiftButton.background = keyBackground(KeyRole.SPECIAL, selected = isShifted)
         shiftButton.setTextColor(if (isShifted) Color.WHITE else COLOR_TEXT)
     }
@@ -336,34 +424,31 @@ class VibeTypeKeyboardService : InputMethodService() {
         }
     }
 
-    private fun scheduleSuggestions(immediate: Boolean = false) {
-        pendingSuggestionRunnable?.let(mainHandler::removeCallbacks)
-        val delay = if (immediate) 0L else SUGGESTION_DEBOUNCE_MS
-        pendingSuggestionRunnable = Runnable {
-            val sourceText = getCurrentSentence()
-            if (sourceText.isBlank()) {
-                setIdleSuggestions()
-            } else {
-                requestSuggestions(sourceText, selectedTone)
-            }
-        }.also { mainHandler.postDelayed(it, delay) }
-    }
+    private fun requestSuggestionsForTone(tone: Tone) {
+        finishHangulComposition()
+        val input = getCurrentSentence().trim()
 
-    private fun requestSuggestions(input: String, tone: Tone) {
+        if (input.isBlank()) {
+            showPopupMessage("문장을 먼저 입력해 주세요.")
+            return
+        }
+
         val requestId = ++suggestionRequestId
-        setLoadingSuggestions()
+        showLoadingPopup(tone)
 
         Thread {
-            val suggestions = runCatching {
+            val result = runCatching {
                 requestGeminiSuggestions(input, tone)
-            }.getOrElse { error ->
-                Log.w(TAG, "Gemini request failed, using fallback", error)
-                fallbackSuggestions(input, tone)
             }
 
             mainHandler.post {
                 if (requestId == suggestionRequestId) {
-                    showSuggestions(suggestions)
+                    result
+                        .onSuccess { showSuggestions(it) }
+                        .onFailure { error ->
+                            Log.w(TAG, "Gemini request failed", error)
+                            showGeminiError(error)
+                        }
                 }
             }
         }.start()
@@ -379,20 +464,34 @@ class VibeTypeKeyboardService : InputMethodService() {
         }
 
         val prompt = """
-            You are VibeType, an AI assistant that converts Korean or awkward English messages into natural, situation-appropriate English expressions.
+            You are VibeType, an AI assistant that rewrites the user's exact message into natural English.
 
             User input: "$input"
             Target tone: ${tone.prompt}
 
-            Generate exactly 3 natural English expressions that convey the same meaning as the input, each with a slightly different phrasing style. Keep them concise and ready to send in a chat or email.
+            Generate exactly 3 natural English versions of the user's input.
+            Rules:
+            - Preserve the user's original meaning, topic, request, names, dates, and details.
+            - If the input is Korean, translate the same meaning into natural English.
+            - If the input is awkward English, rewrite it naturally.
+            - Do not answer the message, add new facts, or switch to a generic example.
+            - Keep each option ready to send in a chat or email.
 
             Respond ONLY with a JSON object:
             {"results":["expression 1","expression 2","expression 3"]}
         """.trimIndent()
 
         val payload = JSONObject()
-            .put("contents", listOf(mapOf("parts" to listOf(mapOf("text" to prompt)))))
-            .put("generationConfig", JSONObject().put("temperature", 0.8).put("maxOutputTokens", 1024))
+            .put(
+                "contents",
+                JSONArray().put(
+                    JSONObject().put(
+                        "parts",
+                        JSONArray().put(JSONObject().put("text", prompt))
+                    )
+                )
+            )
+            .put("generationConfig", JSONObject().put("temperature", 0.45).put("maxOutputTokens", 1024))
             .toString()
 
         OutputStreamWriter(connection.outputStream, Charsets.UTF_8).use { it.write(payload) }
@@ -415,37 +514,107 @@ class VibeTypeKeyboardService : InputMethodService() {
             .replace("```", "")
             .trim()
 
-        val results = JSONObject(rawText).getJSONArray("results")
-        return (0 until minOf(3, results.length())).map { results.getString(it) }
-            .ifEmpty { fallbackSuggestions(input, tone) }
+        val jsonText = rawText.substringAfter("{", rawText).substringBeforeLast("}", rawText)
+        val results = JSONObject("{$jsonText}").getJSONArray("results")
+        val parsedResults = (0 until minOf(3, results.length()))
+            .map { results.getString(it).trim() }
+            .filter { it.isNotBlank() }
+
+        if (parsedResults.isEmpty()) {
+            throw IllegalStateException("Gemini returned no usable suggestions.")
+        }
+
+        return parsedResults
     }
 
     private fun showSuggestions(results: List<String>) {
-        results.take(3).forEachIndexed { index, suggestion ->
-            suggestionButtons[index].text = suggestion
-            suggestionButtons[index].setTextColor(COLOR_TEXT)
-            suggestionButtons[index].setOnClickListener {
-                tapFeedback()
-                replaceCurrentText(suggestion)
-                scheduleSuggestions(immediate = true)
+        popupTitle.text = "${selectedTone?.label ?: "VibeType"} results"
+        popupOverlay.visibility = View.VISIBLE
+        popupResultButtons.forEachIndexed { index, button ->
+            val suggestion = results.getOrNull(index)
+            if (suggestion == null) {
+                button.visibility = View.GONE
+            } else {
+                button.visibility = View.VISIBLE
+                button.text = suggestion
+                button.isEnabled = true
+                button.alpha = 1f
+                button.setTextColor(Color.WHITE)
+                button.background = gradientPopupBackground()
+                button.setOnClickListener {
+                    tapFeedback()
+                    replaceCurrentText(suggestion)
+                    hideSuggestionPopup()
+                }
             }
         }
     }
 
-    private fun setIdleSuggestions() {
-        val labels = listOf("Type a message", "Choose a tone", "Tap a suggestion")
-        labels.forEachIndexed { index, label ->
-            suggestionButtons[index].text = label
-            suggestionButtons[index].setTextColor(COLOR_TEXT_SOFT)
-            suggestionButtons[index].setOnClickListener(null)
+    private fun showGeminiError(error: Throwable) {
+        popupTitle.text = "Gemini 결과를 가져오지 못했어요"
+        popupOverlay.visibility = View.VISIBLE
+        popupResultButtons.forEachIndexed { index, button ->
+            button.visibility = if (index == 0) View.VISIBLE else View.GONE
+            button.text = if (index == 0) {
+                "API 연결 또는 응답 형식 문제입니다. Logcat에서 $TAG 를 확인해 주세요."
+            } else {
+                ""
+            }
+            button.isEnabled = false
+            button.alpha = 0.9f
+            button.setTextColor(Color.WHITE)
+            button.background = gradientPopupBackground()
+            button.setOnClickListener(null)
+        }
+        Log.w(TAG, "Suggestion popup error: ${error.message}", error)
+    }
+
+    private fun showLoadingPopup(tone: Tone) {
+        popupTitle.text = "Generating ${tone.label} tone..."
+        popupOverlay.visibility = View.VISIBLE
+        val labels = listOf("Asking Gemini", "Matching tone", "Preparing options")
+        popupResultButtons.forEachIndexed { index, button ->
+            button.visibility = View.VISIBLE
+            button.text = labels[index]
+            button.isEnabled = false
+            button.alpha = 0.78f
+            button.background = gradientPopupBackground()
+            button.setTextColor(Color.WHITE)
+            button.setOnClickListener(null)
         }
     }
 
-    private fun setLoadingSuggestions() {
-        suggestionButtons.forEachIndexed { index, button ->
-            button.text = listOf("Finding...", "the right", "vibe")[index]
-            button.setTextColor(COLOR_TEXT_SOFT)
+    private fun showPopupMessage(message: String) {
+        popupTitle.text = message
+        popupOverlay.visibility = View.VISIBLE
+        popupResultButtons.forEachIndexed { index, button ->
+            button.text = if (index == 0) "입력창에 문장을 쓴 뒤 톤을 선택하세요." else ""
+            button.visibility = if (index == 0) View.VISIBLE else View.GONE
+            button.isEnabled = false
+            button.alpha = 0.9f
+            button.background = gradientPopupBackground()
             button.setOnClickListener(null)
+        }
+    }
+
+    private fun hideSuggestionPopup() {
+        if (::popupOverlay.isInitialized) {
+            popupOverlay.visibility = View.GONE
+            popupResultButtons.forEach { button ->
+                button.visibility = View.VISIBLE
+                button.isEnabled = true
+                button.alpha = 1f
+            }
+        }
+    }
+
+    private fun gradientPopupBackground(): GradientDrawable {
+        return GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            intArrayOf(COLOR_POPUP_PURPLE, COLOR_POPUP_BLUE)
+        ).apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = 14.dp().toFloat()
         }
     }
 
@@ -661,32 +830,6 @@ class VibeTypeKeyboardService : InputMethodService() {
         }
     }
 
-    private fun fallbackSuggestions(input: String, tone: Tone): List<String> {
-        val clean = input.trim().ifBlank { "that" }
-        return when (tone) {
-            Tone.FRIEND -> listOf(
-                "Hey, that sounds good to me.",
-                "Yeah, I like that idea.",
-                "Totally, $clean works for me."
-            )
-            Tone.PROFESSOR -> listOf(
-                "I hope this message finds you well. I wanted to ask if this would be possible.",
-                "Thank you for your guidance. I will review this carefully and follow up.",
-                "Would it be alright if we discussed this when you have a moment?"
-            )
-            Tone.TEAMMATE -> listOf(
-                "Looks good. I'll follow up on this.",
-                "I agree with this direction.",
-                "Let's move forward and sync on the next step."
-            )
-            Tone.BUSINESS -> listOf(
-                "Thank you for the update. This sounds good to me.",
-                "I appreciate the context and will review it shortly.",
-                "That approach works well from my side."
-            )
-        }
-    }
-
     private fun buildGeminiUrl(): String {
         return "$GEMINI_API_BASE_URL/models/$GEMINI_MODEL:generateContent?key=$GEMINI_API_KEY"
     }
@@ -722,12 +865,14 @@ class VibeTypeKeyboardService : InputMethodService() {
         NORMAL,
         SPECIAL,
         SPACE,
+        ENTER,
+        LANGUAGE,
         SUGGESTION,
         TONE
     }
 
     private enum class Tone(val label: String, val prompt: String) {
-        FRIEND("Friend", "casual and friendly, like texting a close friend. Use informal contractions, slang is okay."),
+        FRIEND("Friend", "very casual and close-friend style, like texting a best friend. Use contractions and, when the context fits, use more Gen Z/MZ-style wording, abbreviations, or close-friend expressions such as tbh, ngl, lol, fr, low-key, kinda, wanna, gotta, no worries, you're good, or bro/bestie-style phrasing. Make it feel natural between close friends, but still preserve the user's exact meaning and do not force slang where it does not fit."),
         PROFESSOR("Professor", "polite and respectful, like emailing a professor or academic. Formal but not stiff."),
         TEAMMATE("Team", "collaborative and approachable, like messaging a project teammate. Friendly but professional."),
         BUSINESS("Business", "professional and formal, suitable for business communication with clients or seniors.")
@@ -739,7 +884,8 @@ class VibeTypeKeyboardService : InputMethodService() {
         private const val WRAP = LinearLayout.LayoutParams.WRAP_CONTENT
         private const val KEY_HEIGHT_DP = 46
         private const val MAX_REPLACE_CHARS = 1000
-        private const val SUGGESTION_DEBOUNCE_MS = 650L
+        private const val BACKSPACE_INITIAL_DELAY_MS = 380L
+        private const val BACKSPACE_REPEAT_INTERVAL_MS = 58L
 
         private const val GEMINI_API_KEY = "AQ.Ab8RN6KSoNwyrGyyedipTAh3Ch1ANsCytQKVLHkeKs4RQvj0eA"
         private const val GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
@@ -751,6 +897,8 @@ class VibeTypeKeyboardService : InputMethodService() {
         private const val COLOR_TOOL_KEY = 0xFFECEF3F6.toInt()
         private const val COLOR_SUGGESTION_KEY = 0xFFFFFFFF.toInt()
         private const val COLOR_ACCENT = 0xFF6F5DF6.toInt()
+        private const val COLOR_POPUP_PURPLE = 0xFF7B5CF0.toInt()
+        private const val COLOR_POPUP_BLUE = 0xFF247CFF.toInt()
         private const val COLOR_TEXT = 0xFF20232A.toInt()
         private const val COLOR_TEXT_SOFT = 0xFF646B78.toInt()
 
