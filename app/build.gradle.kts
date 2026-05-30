@@ -48,6 +48,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    
+    // 🎹 KeyboardVisibilityEvent: 소프트 키보드 표시/숨김 감지
+    implementation("net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.2.7")
+    
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
