@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
+    android:keyWidth="10%p"
+    android:keyHeight="50dp">
+
+    <!-- Row 1: Q W E R T Y U I O P -->
+    <Row>
+        <Key android:codes="113" android:keyLabel="Q" android:keyWidth="9%p" />
+        <Key android:codes="119" android:keyLabel="W" android:keyWidth="9%p" />
+        <Key android:codes="101" android:keyLabel="E" android:keyWidth="9%p" />
+        <Key android:codes="114" android:keyLabel="R" android:keyWidth="9%p" />
+        <Key android:codes="116" android:keyLabel="T" android:keyWidth="9%p" />
+        <Key android:codes="121" android:keyLabel="Y" android:keyWidth="9%p" />
+        <Key android:codes="117" android:keyLabel="U" android:keyWidth="9%p" />
+        <Key android:codes="105" android:keyLabel="I" android:keyWidth="9%p" />
+        <Key android:codes="111" android:keyLabel="O" android:keyWidth="9%p" />
+        <Key android:codes="112" android:keyLabel="P" android:keyWidth="10%p" />
+    </Row>
+
+    <!-- Row 2: A S D F G H J K L -->
+    <Row android:verticalGap="2dp">
+        <Key android:codes="97" android:keyLabel="A" android:keyWidth="10%p" />
+        <Key android:codes="115" android:keyLabel="S" android:keyWidth="10%p" />
+        <Key android:codes="100" android:keyLabel="D" android:keyWidth="10%p" />
+        <Key android:codes="102" android:keyLabel="F" android:keyWidth="10%p" />
+        <Key android:codes="103" android:keyLabel="G" android:keyWidth="10%p" />
+        <Key android:codes="104" android:keyLabel="H" android:keyWidth="10%p" />
+        <Key android:codes="106" android:keyLabel="J" android:keyWidth="10%p" />
+        <Key android:codes="107" android:keyLabel="K" android:keyWidth="10%p" />
+        <Key android:codes="108" android:keyLabel="L" android:keyWidth="10%p" />
+    </Row>
+
+    <!-- Row 3: Z X C V B N M Backspace -->
+    <Row android:verticalGap="2dp">
+        <Key android:codes="122" android:keyLabel="Z" android:keyWidth="11%p" />
+        <Key android:codes="120" android:keyLabel="X" android:keyWidth="11%p" />
+        <Key android:codes="99" android:keyLabel="C" android:keyWidth="11%p" />
+        <Key android:codes="118" android:keyLabel="V" android:keyWidth="11%p" />
+        <Key android:codes="98" android:keyLabel="B" android:keyWidth="11%p" />
+        <Key android:codes="110" android:keyLabel="N" android:keyWidth="11%p" />
+        <Key android:codes="109" android:keyLabel="M" android:keyWidth="11%p" />
+        <Key android:codes="-5" android:keyLabel="◄" android:keyWidth="12%p" android:isModifier="true" android:isSticky="false" />
+    </Row>
+
+    <!-- Row 4: 한/영 Space Enter -->
+    <Row android:verticalGap="2dp">
+        <Key android:codes="-100" android:keyLabel="한/영" android:keyWidth="20%p" android:isModifier="true" />
+        <Key android:codes="32" android:keyLabel=" " android:keyWidth="40%p" />
+        <Key android:codes="-101" android:keyLabel="입력" android:keyWidth="20%p" android:isModifier="true" />
+        <Key android:codes="10" android:keyLabel="Enter" android:keyWidth="20%p" />
+    </Row>
+
+</Keyboard>
