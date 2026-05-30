@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">VibeType_CustomKeyboard</string>
+    <string name="ime_name">VibeType Keyboard</string>
+    <string name="vibe_typing">VibeTyping</string>
+    <string name="friend">friend</string>
+    <string name="teammate">teammate</string>
+    <string name="business">business</string>
+    <string name="professor">professor</string>
+    <string name="space">Space</string>
+    <string name="delete">Delete</string>
+    <string name="enter">Enter</string>
+    <string name="test_input_title">VibeType Keyboard Test</string>
+    <string name="test_input_hint">Tap here and use the VibeType keyboard</string>
+</resources>
