@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VibeType — Natural English, Instantly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #7B5CF0;
+    --purple-light: #A07EF5;
+    --pink: #C44DB5;
+    --pink-light: #E070CC;
+    --dark-bg: #0C0C15;
+    --dark-surface: rgba(255,255,255,0.045);
+    --dark-border: rgba(255,255,255,0.09);
+    --text-primary: #FFFFFF;
+    --text-secondary: rgba(255,255,255,0.5);
+    --text-muted: rgba(255,255,255,0.28);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+    --font: 'DM Sans', sans-serif;
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--dark-bg);
+    font-family: var(--font);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Background effects ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 60% 50% at 10% 30%, rgba(100,60,230,0.22) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 45% at 90% 65%, rgba(190,50,170,0.18) 0%, transparent 70%);
+  }
+
+  /* ── Layout ── */
+  .page {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── Nav ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 40px;
+    border-bottom: 0.5px solid var(--dark-border);
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .logo-icon {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-text {
+    font-size: 19px; font-weight: 600; color: #fff; letter-spacing: -0.4px;
+  }
+  .logo-text em { color: var(--purple-light); font-style: normal; }
+
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-link {
+    font-size: 13px; color: var(--text-secondary); cursor: pointer;
+    transition: color 0.15s; text-decoration: none;
+  }
+  .nav-link:hover { color: rgba(255,255,255,0.8); }
+  .nav-badge {
+    font-size: 11px; font-weight: 500;
+    background: rgba(160,126,245,0.14);
+    color: var(--purple-light);
+    border: 0.5px solid rgba(160,126,245,0.3);
+    border-radius: 20px; padding: 4px 11px;
+  }
+
+  /* ── Main ── */
+  main {
+    flex: 1;
+    max-width: 680px; width: 100%;
+    margin: 0 auto;
+    padding: 48px 24px 60px;
+  }
+
+  /* ── Hero ── */
+  .hero { text-align: center; margin-bottom: 40px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(160,126,245,0.1);
+    border: 0.5px solid rgba(160,126,245,0.28);
+    border-radius: 20px; padding: 5px 14px; margin-bottom: 18px;
+    font-size: 12px; font-weight: 500; color: var(--purple-light);
+  }
+  .hero h1 {
+    font-size: 32px; font-weight: 600; line-height: 1.25;
+    letter-spacing: -0.5px; margin-bottom: 10px;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(90deg, var(--purple-light), var(--pink-light));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 15px; color: var(--text-secondary); line-height: 1.65;
+    max-width: 420px; margin: 0 auto;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--dark-surface);
+    border: 0.5px solid var(--dark-border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    margin-bottom: 14px;
+  }
+  .card-label {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.09em;
+    color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  /* ── Textarea ── */
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.055);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-md);
+    color: #fff; font-size: 15px; font-family: var(--font);
+    padding: 14px 16px; resize: none; outline: none;
+    line-height: 1.65; min-height: 100px;
+    transition: border-color 0.15s;
+  }
+  textarea::placeholder { color: var(--text-muted); }
+  textarea:focus { border-color: rgba(160,126,245,0.5); }
+
+  /* ── Tone buttons ── */
+  .tone-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  }
+  .tone-btn {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.09);
+    border-radius: var(--radius-md);
+    padding: 14px 8px;
+    cursor: pointer; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    transition: all 0.15s; user-select: none;
+  }
+  .tone-btn:hover {
+    background: rgba(160,126,245,0.1);
+    border-color: rgba(160,126,245,0.32);
+  }
+  .tone-btn.active {
+    background: rgba(160,126,245,0.16);
+    border-color: rgba(160,126,245,0.55);
+  }
+  .tone-icon { font-size: 22px; }
+  .tone-label {
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,0.45);
+  }
+  .tone-sub { font-size: 10px; color: var(--text-muted); }
+  .tone-btn.active .tone-icon { filter: saturate(1.3) brightness(1.2); }
+  .tone-btn.active .tone-label { color: var(--purple-light); }
+
+  /* ── Generate button ── */
+  .gen-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--pink) 100%);
+    border: none; border-radius: var(--radius-md);
+    color: #fff; font-size: 15px; font-weight: 600; font-family: var(--font);
+    padding: 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity 0.15s, transform 0.1s; margin-top: 4px;
+    letter-spacing: -0.2px;
+  }
+  .gen-btn:hover { opacity: 0.88; }
+  .gen-btn:active { transform: scale(0.99); }
+  .gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Loading ── */
+  .loading {
+    text-align: center; padding: 36px 0;
+    color: var(--text-secondary); font-size: 14px;
+    display: none;
+  }
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2px solid rgba(160,126,245,0.2);
+    border-top-color: var(--purple-light);
+    border-radius: 50%; margin-right: 10px;
+    animation: spin 0.65s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Results ── */
+  .results-wrap { margin-top: 24px; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .results-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+    font-size: 12px; font-weight: 500; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .results-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-light), var(--pink-light));
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.045);
+    border: 0.5px solid rgba(255,255,255,0.09);
+    border-radius: var(--radius-md);
+    padding: 18px; margin-bottom: 10px;
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .result-card:hover {
+    border-color: rgba(160,126,245,0.38);
+    background: rgba(160,126,245,0.08);
+  }
+  .result-card.copied {
+    border-color: rgba(80,210,130,0.45);
+    background: rgba(80,210,130,0.06);
+  }
+  .result-tag {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .result-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--text-muted); text-transform: uppercase;
+  }
+  .copy-icon { font-size: 14px; color: var(--text-muted); }
+  .result-text {
+    font-size: 15px; color: var(--text-primary); line-height: 1.65;
+  }
+  .copy-hint {
+    font-size: 11px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 4px; margin-top: 10px;
+  }
+  .copy-done {
+    font-size: 11px; color: rgba(80,210,130,0.85);
+    display: flex; align-items: center; gap: 4px; margin-top: 10px;
+  }
+
+  /* ── Error ── */
+  .error-msg {
+    background: rgba(210,80,80,0.08);
+    border: 0.5px solid rgba(210,80,80,0.25);
+    border-radius: var(--radius-md);
+    padding: 14px 16px; margin-top: 16px;
+    font-size: 13px; color: rgba(240,140,130,0.9);
+    display: none;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 16px 40px;
+    border-top: 0.5px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--text-muted);
+    gap: 8px;
+  }
+  .footer-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-light), var(--pink-light));
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 540px) {
+    nav { padding: 16px 20px; }
+    main { padding: 32px 16px 48px; }
+    .hero h1 { font-size: 26px; }
+    .tone-grid { grid-template-columns: repeat(2, 1fr); }
+    footer { padding: 14px 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Nav -->
+  <nav>
+    <a class="logo" href="#">
+      <div class="logo-icon">🌐</div>
+      <span class="logo-text">Vibe<em>Type</em></span>
+    </a>
+    <div class="nav-right">
+      <a class="nav-link" href="#" onclick="loadExample(); return false;">Try example</a>
+      <span class="nav-badge">✦ Hackathon MVP</span>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main>
+    <div class="hero">
+      <div class="hero-badge">✨ AI-powered expression</div>
+      <h1>Say it in English,<br><span class="grad">the natural way.</span></h1>
+      <p>한국어나 어색한 영어로 입력하면, 상황에 맞는 자연스러운 영어 표현을 추천해 드립니다.</p>
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+      <div class="card-label">Your message</div>
+      <textarea id="vt-input" placeholder="한국어로 입력하거나 어색한 영어로 써보세요&#10;예: 교수님, 과제 기한 좀 늘려주실 수 있나요?" rows="3"></textarea>
+    </div>
+
+    <!-- Tone -->
+    <div class="card">
+      <div class="card-label">Who are you talking to?</div>
+      <div class="tone-grid">
+        <div class="tone-btn" data-tone="friend" onclick="selectTone(this)">
+          <span class="tone-icon">😄</span>
+          <span class="tone-label">Friend</span>
+          <span class="tone-sub">Casual</span>
+        </div>
+        <div class="tone-btn active" data-tone="professor" onclick="selectTone(this)">
+          <span class="tone-icon">🎓</span>
+          <span class="tone-label">Professor</span>
+          <span class="tone-sub">Formal</span>
+        </div>
+        <div class="tone-btn" data-tone="teammate" onclick="selectTone(this)">
+          <span class="tone-icon">🤝</span>
+          <span class="tone-label">Teammate</span>
+          <span class="tone-sub">Collaborative</span>
+        </div>
+        <div class="tone-btn" data-tone="business" onclick="selectTone(this)">
+          <span class="tone-icon">💼</span>
+          <span class="tone-label">Business</span>
+          <span class="tone-sub">Professional</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="gen-btn" id="gen-btn" onclick="generate()">
+      ✦ Get natural expressions
+    </button>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      Finding the right vibe...
+    </div>
+
+    <div id="results"></div>
+  </main>
+
+  <footer>
+    <div class="footer-dot"></div>
+    Powered by Gemini &nbsp;·&nbsp; VibeType 2026 &nbsp;·&nbsp; Hackathon MVP
+  </footer>
+</div>
+
+<script>
+  const GEMINI_API_KEY = 'AQ.Ab8RN6I46YLpCEbkThTWAUVGyIS_fJsWVyWrLbha1Hkv-mm_Mg';
+  const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+  // gemini-1.5-flash is retired on v1beta → use current flash model (same URL shape)
+  const GEMINI_MODEL = 'gemini-2.5-flash';
+  let isGenerating = false;
+
+  function buildGeminiGenerateContentUrl() {
+    return `${GEMINI_API_BASE_URL}/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+  }
+
+  // ── State ──
+  let selectedTone = 'professor';
+
+  // ── Tone select ──
+  function selectTone(el) {
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    selectedTone = el.dataset.tone;
+  }
+
+  // ── Load example ──
+  function loadExample() {
+    document.getElementById('vt-input').value = '교수님, 갑자기 일이 생겨서 과제 제출 기한을 조금만 늘려주실 수 있나요?';
+    document.querySelectorAll('.tone-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-tone="professor"]').classList.add('active');
+    selectedTone = 'professor';
+  }
+
+  // ── Fallback examples ──
+  const fallbacks = {
+    friend: [
+      "Hey, any chance you can push the deadline back a bit? Things got kinda hectic on my end 😅",
+      "Bro can we get a little more time on this? I've been swamped lol",
+      "Yo is there any way to extend the due date? I could really use a couple more days ngl"
+    ],
+    professor: [
+      "I was wondering if it would be possible to get a short extension on the assignment deadline — I've been dealing with some unexpected circumstances.",
+      "I hope this message finds you well. I wanted to ask if there's any flexibility with the submission date for the upcoming assignment.",
+      "Would it be alright if I submitted the assignment a day or two late? I want to make sure I can give it the attention it deserves."
+    ],
+    teammate: [
+      "Hey team, would it be okay if we pushed the deadline by a day or two? I want to make sure we deliver something we're all proud of.",
+      "Just checking in — is there room to adjust the timeline a bit? Want to make sure we're all aligned before submitting.",
+      "Could we revisit the deadline? I think a small extension would help us put our best work forward."
+    ],
+    business: [
+      "I would like to respectfully request a brief extension on the submission deadline. I am committed to delivering a high-quality result.",
+      "Please allow me to inquire about the possibility of extending the project deadline by a short period due to unforeseen circumstances.",
+      "I am reaching out to discuss whether a deadline adjustment might be feasible, as I want to ensure we meet the expected standard of quality."
+    ]
+  };
+
+  // ── Generate (button click only — one request at a time) ──
+  async function generate() {
+    if (isGenerating) return;
+
+    const input = document.getElementById('vt-input').value.trim();
+    const resultsEl = document.getElementById('results');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error-msg');
+    const btn = document.getElementById('gen-btn');
+
+    errorEl.style.display = 'none';
+
+    if (!input) {
+      const ta = document.getElementById('vt-input');
+      ta.style.borderColor = 'rgba(210,80,80,0.5)';
+      ta.focus();
+      setTimeout(() => ta.style.borderColor = '', 800);
+      return;
+    }
+
+    isGenerating = true;
+    btn.disabled = true;
+    loadingEl.style.display = 'block';
+    resultsEl.innerHTML = '';
+
+    const toneDesc = {
+      friend: 'casual and friendly, like texting a close friend. Use informal contractions, slang is okay.',
+      professor: 'polite and respectful, like emailing a professor or academic. Formal but not stiff.',
+      teammate: 'collaborative and approachable, like messaging a project teammate. Friendly but professional.',
+      business: 'professional and formal, suitable for business communication with clients or seniors.'
+    }[selectedTone];
+
+    try {
+      const prompt = `You are VibeType, an AI assistant that converts Korean or awkward English messages into natural, situation-appropriate English expressions.
+
+User input: "${input}"
+Target tone: ${toneDesc}
+
+Generate exactly 3 natural English expressions that convey the same meaning as the input, each with a slightly different phrasing style. Keep them concise and ready to send in a chat or email.
+
+Respond ONLY with a JSON object (no markdown, no backticks, no extra text):
+{"results":["expression 1","expression 2","expression 3"]}`;
+
+      const response = await fetch(buildGeminiGenerateContentUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.8, maxOutputTokens: 1024 }
+          })
+        }
+      );
+
+      if (response.status === 404) {
+        throw new Error('Gemini 모델을 찾을 수 없습니다(404). 모델 이름이 API에서 지원되는지 확인하세요.');
+      }
+      if (response.status === 429) {
+        throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요. (429)');
+      }
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+      let parsed;
+      try {
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+      } catch {
+        parsed = { results: fallbacks[selectedTone] };
+      }
+
+      loadingEl.style.display = 'none';
+      renderResults(parsed.results);
+
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      errorEl.textContent = err.message || '알 수 없는 오류가 발생했습니다.';
+      errorEl.style.display = 'block';
+      renderResults(fallbacks[selectedTone]);
+    } finally {
+      isGenerating = false;
+      btn.disabled = false;
+    }
+  }
+
+  // ── Render results ──
+  function renderResults(results) {
+    const resultsEl = document.getElementById('results');
+    const labels = ['Option A', 'Option B', 'Option C'];
+
+    let html = `<div class="results-wrap">
+      <div class="results-header">
+        <div class="results-dot"></div>
+        3 natural expressions — tap to copy
+      </div>`;
+
+    results.forEach((text, i) => {
+      const safeText = text.replace(/`/g, '\\`').replace(/'/g, "\\'");
+      html += `
+      <div class="result-card" id="rc-${i}" onclick="copyResult(${i}, '${safeText}')">
+        <div class="result-tag">
+          <span class="result-label">${labels[i]}</span>
+          <span class="copy-icon">⧉</span>
+        </div>
+        <div class="result-text">${text}</div>
+        <div class="copy-hint" id="hint-${i}">⧉ Tap to copy</div>
+      </div>`;
+    });
+
+    html += '</div>';
+    resultsEl.innerHTML = html;
+  }
+
+  // ── Copy ──
+  function copyResult(idx, text) {
+    navigator.clipboard.writeText(text).catch(() => {});
+    const card = document.getElementById(`rc-${idx}`);
+    const hint = document.getElementById(`hint-${idx}`);
+    card.classList.add('copied');
+    hint.className = 'copy-done';
+    hint.textContent = '✓ Copied! Paste it anywhere.';
+    setTimeout(() => {
+      card.classList.remove('copied');
+      hint.className = 'copy-hint';
+      hint.textContent = '⧉ Tap to copy';
+    }, 2500);
+  }
+
+</script>
+</body>
+</html>
