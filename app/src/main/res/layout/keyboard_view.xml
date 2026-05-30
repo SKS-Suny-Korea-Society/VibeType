@@ -1,133 +1,199 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/keyboard_background">
+    android:orientation="vertical"
+    android:background="#222831">
 
     <LinearLayout
-        android:id="@+id/keyboardContent"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:orientation="horizontal"
+        android:background="#1A1D24"
+        android:padding="5dp">
+
+        <TextView
+            android:id="@+id/tvFriendly"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="😊 Friendly"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvProfessional"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="💼 Professional"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvTrendy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="✨ Trendy"
+            android:textColor="#FFFFFF"
+            android:gravity="center"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Keyboard View -->
+    <android.inputmethodservice.KeyboardView
+        android:id="@+id/keyboardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="8dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="36dp">
+        android:focusable="true"
+        android:clickable="true"
+        android:background="#222831"
+        android:keyTextColor="#FFFFFF"
+        android:labelTextSize="14sp"
+        android:keyTextSize="18sp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp" />
+
+    <!-- Hidden UI Components for VibeType Suggestions -->
+    <LinearLayout
+        android:id="@+id/relationshipRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:background="#1A1D24"
+        android:padding="8dp">
+
+        <Button
+            android:id="@+id/friendButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="😊 Friend"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/teammateButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="👥 Teammate"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/businessButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="💼 Business"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/professorButton"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="🎓 Professor"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Suggestion Panel -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <View
+            android:id="@+id/dimOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#000000"
+            android:alpha="0"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/suggestionPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#1A1D24"
+            android:alpha="0"
+            android:translationY="24dp"
+            android:visibility="gone"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/suggestionAButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/suggestionBButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/suggestionCButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Control Buttons Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:background="#1A1D24"
+        android:padding="8dp">
 
         <Button
             android:id="@+id/vibeTypingButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="@string/vibe_typing"
-            android:textAllCaps="false" />
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="✨ VibeType"
+            android:textSize="12sp" />
 
-        <LinearLayout
-            android:id="@+id/relationshipRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="gone">
+        <Button
+            android:id="@+id/spaceButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:layout_margin="4dp"
+            android:text="Space"
+            android:textSize="12sp" />
 
-            <Button
-                android:id="@+id/friendButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/friend"
-                android:textAllCaps="false" />
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="◄ Del"
+            android:textSize="12sp" />
 
-            <Button
-                android:id="@+id/teammateButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/teammate"
-                android:textAllCaps="false" />
-
-            <Button
-                android:id="@+id/businessButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/business"
-                android:textAllCaps="false" />
-
-            <Button
-                android:id="@+id/professorButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/professor"
-                android:textAllCaps="false" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/spaceButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="2"
-                android:text="@string/space" />
-
-            <Button
-                android:id="@+id/deleteButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/delete" />
-
-            <Button
-                android:id="@+id/enterButton"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/enter" />
-        </LinearLayout>
+        <Button
+            android:id="@+id/enterButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_margin="4dp"
+            android:text="Enter"
+            android:textSize="12sp" />
     </LinearLayout>
 
-    <View
-        android:id="@+id/dimOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0"
-        android:background="#99000000"
-        android:visibility="gone" />
-
-    <LinearLayout
-        android:id="@+id/suggestionPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="@drawable/suggestion_panel_background"
-        android:elevation="8dp"
-        android:orientation="vertical"
-        android:padding="12dp"
-        android:translationY="24dp"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/suggestionAButton"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:textAllCaps="false"
-            android:textColor="@color/black" />
-
-        <Button
-            android:id="@+id/suggestionBButton"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:textAllCaps="false"
-            android:textColor="@color/black" />
-
-        <Button
-            android:id="@+id/suggestionCButton"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:textAllCaps="false"
-            android:textColor="@color/black" />
-    </LinearLayout>
-</FrameLayout>
+</LinearLayout>
