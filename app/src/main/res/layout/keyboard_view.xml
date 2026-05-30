@@ -5,6 +5,7 @@
     android:orientation="vertical"
     android:background="#222831">
 
+    <!-- Top Tone Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="45dp"
@@ -43,7 +44,7 @@
             android:textSize="12sp" />
     </LinearLayout>
 
-    <!-- Keyboard View -->
+    <!-- Existing KeyboardView -->
     <android.inputmethodservice.KeyboardView
         android:id="@+id/keyboardView"
         android:layout_width="match_parent"
@@ -57,7 +58,7 @@
         android:paddingTop="5dp"
         android:paddingBottom="5dp" />
 
-    <!-- Hidden UI Components for VibeType Suggestions -->
+    <!-- Relationship / Tone Buttons -->
     <LinearLayout
         android:id="@+id/relationshipRow"
         android:layout_width="match_parent"
@@ -70,38 +71,95 @@
         <Button
             android:id="@+id/friendButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_margin="4dp"
-            android:text="😊 Friend"
-            android:textSize="12sp" />
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/friend"
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/teammateButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_margin="4dp"
-            android:text="👥 Teammate"
-            android:textSize="12sp" />
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/teammate"
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/businessButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_margin="4dp"
-            android:text="💼 Business"
-            android:textSize="12sp" />
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/business"
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/professorButton"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
-            android:layout_margin="4dp"
-            android:text="🎓 Professor"
-            android:textSize="12sp" />
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/professor"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+    <!-- Hangul Keyboard Rows -->
+    <LinearLayout
+        android:id="@+id/hangulRowTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅂ" android:text="ㅂ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅈ" android:text="ㅈ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㄷ" android:text="ㄷ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㄱ" android:text="ㄱ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅅ" android:text="ㅅ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅛ" android:text="ㅛ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅕ" android:text="ㅕ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅑ" android:text="ㅑ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅐ" android:text="ㅐ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅔ" android:text="ㅔ" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/hangulRowMiddle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="14dp">
+
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅁ" android:text="ㅁ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㄴ" android:text="ㄴ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅇ" android:text="ㅇ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㄹ" android:text="ㄹ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅎ" android:text="ㅎ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅗ" android:text="ㅗ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅓ" android:text="ㅓ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅏ" android:text="ㅏ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅣ" android:text="ㅣ" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/hangulRowBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="42dp">
+
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅋ" android:text="ㅋ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅌ" android:text="ㅌ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅊ" android:text="ㅊ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅍ" android:text="ㅍ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅠ" android:text="ㅠ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅜ" android:text="ㅜ" />
+        <Button style="@style/VibeTypeHangulKey" android:tag="ㅡ" android:text="ㅡ" />
     </LinearLayout>
 
     <!-- Suggestion Panel -->
@@ -131,23 +189,29 @@
             <Button
                 android:id="@+id/suggestionAButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:textSize="14sp" />
+                android:layout_height="64dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:textAllCaps="false"
+                android:textColor="@color/black" />
 
             <Button
                 android:id="@+id/suggestionBButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:textSize="14sp" />
+                android:layout_height="64dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:textAllCaps="false"
+                android:textColor="@color/black" />
 
             <Button
                 android:id="@+id/suggestionCButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="4dp"
-                android:textSize="14sp" />
+                android:layout_height="64dp"
+                android:focusable="false"
+                android:focusableInTouchMode="false"
+                android:textAllCaps="false"
+                android:textColor="@color/black" />
         </LinearLayout>
     </FrameLayout>
 
@@ -165,7 +229,10 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="4dp"
-            android:text="✨ VibeType"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/vibe_typing"
+            android:textAllCaps="false"
             android:textSize="12sp" />
 
         <Button
@@ -174,7 +241,9 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:layout_margin="4dp"
-            android:text="Space"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/space"
             android:textSize="12sp" />
 
         <Button
@@ -183,7 +252,9 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="4dp"
-            android:text="◄ Del"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/delete"
             android:textSize="12sp" />
 
         <Button
@@ -192,7 +263,9 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:layout_margin="4dp"
-            android:text="Enter"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            android:text="@string/enter"
             android:textSize="12sp" />
     </LinearLayout>
 
