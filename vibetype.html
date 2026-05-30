@@ -369,8 +369,15 @@
 </div>
 
 <script>
-  const API_URL = '/api/generate';
+  const GEMINI_API_KEY = 'AQ.Ab8RN6KSoNwyrGyyedipTAh3Ch1ANsCytQKVLHkeKs4RQvj0eA';
+  const GEMINI_API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
+  // gemini-1.5-flash is retired on v1beta → use current flash model (same URL shape)
+  const GEMINI_MODEL = 'gemini-2.5-flash';
   let isGenerating = false;
+
+  function buildGeminiGenerateContentUrl() {
+    return `${GEMINI_API_BASE_URL}/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+  }
 
   // ── State ──
   let selectedTone = 'professor';
@@ -457,15 +464,15 @@ Generate exactly 3 natural English expressions that convey the same meaning as t
 Respond ONLY with a JSON object (no markdown, no backticks, no extra text):
 {"results":["expression 1","expression 2","expression 3"]}`;
 
-      const response = await fetch(API_URL, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    prompt
-  })
-});
+      const response = await fetch(buildGeminiGenerateContentUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.8, maxOutputTokens: 1024 }
+          })
+        }
+      );
 
       if (response.status === 404) {
         throw new Error('Gemini 모델을 찾을 수 없습니다(404). 모델 이름이 API에서 지원되는지 확인하세요.');
@@ -478,12 +485,13 @@ Respond ONLY with a JSON object (no markdown, no backticks, no extra text):
       }
 
       const data = await response.json();
-let parsed;
-try {
-  parsed = data;
-} catch {
-  parsed = { results: fallbacks[selectedTone] };
-}
+      let parsed;
+      try {
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+        parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+      } catch {
+        parsed = { results: fallbacks[selectedTone] };
+      }
 
       loadingEl.style.display = 'none';
       renderResults(parsed.results);
