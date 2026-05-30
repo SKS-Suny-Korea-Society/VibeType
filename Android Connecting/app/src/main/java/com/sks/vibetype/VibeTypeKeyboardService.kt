@@ -50,7 +50,6 @@ class VibeTypeKeyboardService : InputMethodService(), KeyboardView.OnKeyboardAct
         return rootLayout
     }
 
-    override fun onEvaluateInputViewShown(): Boolean = true
 
     // 현재 입력창의 전체 문장을 실시간으로 가져오는 함수 (AI 연동 엔진용)
     private fun getCurrentInputText(): String {
